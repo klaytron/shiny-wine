@@ -1,0 +1,28 @@
+version: "1"
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: postgres.dockerfile
+    image: "postgres"
+    container_name: ${PG_CONTAINER_NAME}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: ${PGDATA}
+    ports:
+      - "5431":5432"
+    volumes:
+       - db:/data/postgres
+    restart: unless-stopped
+  shiny:
+    container_name: ${SH_CONTAINER_NAME}
+    environment:
+      DISABLE_AUTH: "true"
+    build: shiny.dockerfile
+    ports:
+      - "8787:8787"
+volumes:
+    db:
+      external: true

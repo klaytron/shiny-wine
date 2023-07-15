@@ -1,28 +1,39 @@
 version: "1"
 services:
-  postgres:
-    build:
-      context: .
-      dockerfile: postgres.dockerfile
-    image: "postgres"
-    container_name: ${PG_CONTAINER_NAME}
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGDATA: ${PGDATA}
-    ports:
-      - "5431":5432"
-    volumes:
-       - db:/data/postgres
-    restart: unless-stopped
   shiny:
-    container_name: ${SH_CONTAINER_NAME}
+    container_name: shiny-wine-app
+    depends_on:
+      - postgres
     environment:
       DISABLE_AUTH: "true"
-    build: shiny.dockerfile
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    build: ./shiny
     ports:
-      - "8787:8787"
+      - "3838:3838"
+    volumes:
+      - type: bind
+        source: ./shiny/shiny-wine/app.R
+        target: /home/app/app.R
+      - type: bind
+        source: ./shiny/shiny-wine/db.R
+        target: /home/app/db.R
+  postgres:
+    container_name: shiny-wine-db
+    build: ./postgres
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DATA: "/data/shiny_wine_db"
+    volumes:
+      - db:/data/shiny_wine_db
+    restart: unless-stopped
 volumes:
-    db:
-      external: true
+  db:
+    external: true
